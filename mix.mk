@@ -1,4 +1,4 @@
-MIX_DEPS_PATH ?= $(DEPS_DIR)/.mix/
+MIX_DEPS_PATH ?= $(DEPS_DIR)/
 MIX_ENV ?= prod
 
 BUILD_DEPS += elixir_repo
@@ -49,15 +49,17 @@ ERL=erl -noshell $(foreach app,$(ELIXIR_APPS),-pa $$(DEPS_DIR)/$(app)/ebin/)
 
 comma=,
 
-MIX_DEPS_PATH ?= $$(DEPS_DIR)
+MIX_DEPS_PATH ?= $$(DEPS_DIR)/
+export MIX_DEPS_PATH
 MIX_ENV ?= prod
+export MIX_ENV
 
 MIX=$$(ERL) -eval 'application:ensure_all_started(mix).' \\
 	-eval 'application:ensure_all_started(logger).' \\
 	-eval "'Elixir.Mix.CLI':main(tl([undefined $$(foreach word,$$(1),$(comma)<<\"$$(word)\">>)]))."
 
 compile: local.hex deps
-	@$$(call MIX,compile) -eval 'init:stop().'
+	@$$(call MIX,compile --no-optional-deps) -eval 'init:stop().'
 	@cd $$(CURDIR)/_build/$$(MIX_ENV)/lib/; for lib in *; do \\
 		if ! test -L "$$(DEPS_DIR)/$$$$lib"; then \\
 			if test -d "$$(DEPS_DIR)/$$$$lib"; then \\
@@ -71,7 +73,7 @@ compile: local.hex deps
 	done;
 
 deps: local.hex
-	@$$(call MIX,deps.get) -eval 'init:stop().'
+	@$$(call MIX,deps.get --only $(MIX_ENV)) -eval 'init:stop().'
 	@$$(call MIX,deps.compile) -eval 'init:stop().'
 
 local.hex:
