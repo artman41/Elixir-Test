@@ -11,5 +11,6 @@ dep_jason = git https://github.com/michalmuskala/jason.git v1.4.0
 
 deps:: compile-elixir
 
+BUILD_DEPS += relx
 include erlang.mk
 include mix.mk

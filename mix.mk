@@ -1,7 +1,7 @@
 MIX_DEPS_PATH ?= $(DEPS_DIR)/.mix/
 MIX_ENV ?= prod
 
-DEPS += elixir_repo
+BUILD_DEPS += elixir_repo
 NO_AUTOPATCH += elixir_repo
 dep_elixir_repo ?= git https://github.com/elixir-lang/elixir.git v1.14.4
 
@@ -11,6 +11,10 @@ export MIX_DEPS_PATH
 export MIX_ENV
 
 define add_app
+$(eval $(if $(wildcard $(DEPS_DIR)/$(call dep_name,$(1))),,$(call add_app_,$(1),$(2))))
+endef
+
+define add_app_
 $(eval $(info adding $(1) at $(2)))
 $(eval dep_$(1) = ln $(2))
 $(eval DEPS = $(1) $(DEPS))
@@ -54,11 +58,15 @@ MIX=$$(ERL) -eval 'application:ensure_all_started(mix).' \\
 
 compile: local.hex deps
 	@$$(call MIX,compile) -eval 'init:stop().'
-	cd $$(CURDIR)/_build/$$(MIX_ENV)/lib/; for lib in *; do \\
-		if test -d "$$(DEPS_DIR)/$$$$lib"; then \\
-			ln -sfT $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib/ebin $$(DEPS_DIR)/$$$$lib/ebin; \\
-		else \\
-			ln -sfT $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib $$(DEPS_DIR)/$$$$lib; \\
+	@cd $$(CURDIR)/_build/$$(MIX_ENV)/lib/; for lib in *; do \\
+		if ! test -L "$$(DEPS_DIR)/$$$$lib"; then \\
+			if test -d "$$(DEPS_DIR)/$$$$lib"; then \\
+				if ! test -L "$$(DEPS_DIR)/$$$$lib/ebin"; then \\
+					ln -sfT $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib/ebin $$(DEPS_DIR)/$$$$lib/ebin; \\
+				fi; \\
+			else \\
+				ln -sfT $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib $$(DEPS_DIR)/$$$$lib; \\
+			fi; \\
 		fi; \\
 	done;
 
