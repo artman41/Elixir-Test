@@ -54,11 +54,11 @@ MIX=$$(ERL) -eval 'application:ensure_all_started(mix).' \\
 
 compile: local.hex deps
 	@$$(call MIX,compile) -eval 'init:stop().'
-	@cd $$(CURDIR)/_build/$$(MIX_ENV)/lib/; for lib in *; do \\
-		if test -d "$$$$lib"; then \\
-			ln -sf $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib/ebin $$(DEPS_DIR)/$$$$lib/ebin; \\
+	cd $$(CURDIR)/_build/$$(MIX_ENV)/lib/; for lib in *; do \\
+		if test -d "$$(DEPS_DIR)/$$$$lib"; then \\
+			ln -sfT $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib/ebin $$(DEPS_DIR)/$$$$lib/ebin; \\
 		else \\
-			ln -sf $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib $$(DEPS_DIR)/; \\
+			ln -sfT $$(CURDIR)/_build/$$(MIX_ENV)/lib/$$$$lib $$(DEPS_DIR)/$$$$lib; \\
 		fi; \\
 	done;
 
