@@ -54,7 +54,7 @@ export MIX_DEPS_PATH
 MIX_ENV ?= prod
 export MIX_ENV
 
-MIX=$$(ERL) -eval 'application:ensure_all_started(mix).' \\
+MIX=$$(ERL) -pa $$(DEPS_DIR)/*/ebin -eval 'application:ensure_all_started(mix).' \\
 	-eval 'application:ensure_all_started(logger).' \\
 	-eval "'Elixir.Mix.CLI':main(tl([undefined $$(foreach word,$$(1),$(comma)<<\"$$(word)\">>)]))."
 
@@ -73,11 +73,12 @@ compile: local.hex deps
 	done;
 
 deps: local.hex
-	@$$(call MIX,deps.get --only $(MIX_ENV)) -eval 'init:stop().'
+	@$$(call MIX,deps.get --only $$(MIX_ENV)) -eval 'init:stop().'
 	@$$(call MIX,deps.compile) -eval 'init:stop().'
 
 local.hex:
 	@$$(call MIX,local.hex --force --if-missing) -eval 'init:stop().'
+	@$$(call MIX,hex.config unsafe_https true) -eval 'init:stop().'
 endef
 
 define NEWLINE
@@ -95,7 +96,7 @@ ifneq ($(wildcard $(DEPS_DIR)/$(1)/mix.exs),)
 autopatch-$(1):: $(DEPS_DIR)/elixir_repo/lib/mix/ebin
 	$(verbose) if ! test -f $(DEPS_DIR)/$(1)/Makefile || make -q -C $(DEPS_DIR)/$(1) noop 2>&1 1>/dev/null; then \
 		echo 'Needs Makefile: $(1)' >&2; \
-		echo "$(call ESCAPE,$(call hex.mk))" > $(DEPS_DIR)/$(1)/Makefile; \
+		printf '%b\n' "$(call ESCAPE,$(call hex.mk))" > $(DEPS_DIR)/$(1)/Makefile; \
 	fi;
 endif
 endef
