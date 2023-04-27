@@ -11,7 +11,8 @@ export MIX_DEPS_PATH
 export MIX_ENV
 
 define add_app
-$(eval $(if $(wildcard $(DEPS_DIR)/$(call dep_name,$(1))),,$(call add_app_,$(1),$(2))))
+$(eval DEP_DIR=$(wildcard $(DEPS_DIR)/$(1)))
+$(eval $(if $(DEP_DIR),,$(call add_app_,$(1),$(2))))
 endef
 
 define add_app_
@@ -30,6 +31,7 @@ $(DEPS_DIR)/elixir_repo/lib/$(1)/ebin:: $(DEPS_DIR)/elixir_repo
 	$(dep_verbose) $(MAKE) -C $(DEPS_DIR)/elixir_repo/ compile
 
 $(DEPS_DIR)/elixir_repo/lib/$(1)/ebin/dep_built:: $(DEPS_DIR)/elixir_repo/lib/$(1)/ebin
+	$(dep_verbose) rm -rf $(DEPS_DIR)/elixir_repo/lib/$(1)/test/
 	$(dep_verbose) touch $(DEPS_DIR)/elixir_repo/lib/$(1)/ebin/dep_built
 endef
 
